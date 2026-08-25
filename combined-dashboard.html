@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoBench-SC 综合展示页</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+html { background: #eef6ff; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #eef6ff;
+  color: #101826;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+.page {
+  width: min(100%, 2140px);
+  margin: 0 auto;
+  padding: 0 0 40px;
+  background: #eef6ff;
+}
+.frame-section {
+  width: 100%;
+  background: #eef6ff;
+  position: relative;
+}
+.frame-section + .frame-section {
+  margin-top: 0;
+}
+.frame-section:nth-of-type(3) {
+  margin-top: -128px;
+}
+iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: #eef6ff;
+  overflow: hidden;
+}
+.highlights-frame { height: 600px; }
+.index-frame { height: 900px; }
+.task-frame { height: 2040px; }
+@media (max-width: 1280px) {
+  .highlights-frame { height: 1540px; }
+  .index-frame { height: 1320px; }
+  .task-frame { height: 4100px; }
+  .frame-section:nth-of-type(3) { margin-top: -88px; }
+}
+@media (max-width: 760px) {
+  .highlights-frame { height: 1620px; }
+  .index-frame { height: 1500px; }
+  .task-frame { height: 4750px; }
+  .frame-section:nth-of-type(3) { margin-top: -52px; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <section class="frame-section" aria-label="核心测评概览">
+    <iframe class="highlights-frame" src="highlights.html" title="核心测评概览" scrolling="no"></iframe>
+  </section>
+  <section class="frame-section" aria-label="CryptoBench-SC 密码分析智能体综合指数">
+    <iframe class="index-frame" src="superclue-index.html" title="CryptoBench-SC 密码分析智能体综合指数" scrolling="no"></iframe>
+  </section>
+  <section class="frame-section" aria-label="五大核心任务榜单">
+    <iframe class="task-frame" src="task-rankings.html" title="五大核心任务榜单" scrolling="no"></iframe>
+  </section>
+</main>
+<script>
+function resizeFrame(frame) {
+  try {
+    frame.style.height = "";
+    const doc = frame.contentDocument || frame.contentWindow.document;
+    const height = Math.max(
+      doc.body?.scrollHeight || 0,
+      doc.documentElement?.scrollHeight || 0
+    );
+    if (height) frame.style.height = `${height}px`;
+  } catch (error) {
+    // CSS heights above are the fallback for file/browser restrictions.
+  }
+}
+
+function resizeAllFrames() {
+  const frames = document.querySelectorAll("iframe");
+  if (window.matchMedia("(max-width: 760px)").matches) {
+    frames.forEach(frame => { frame.style.height = ""; });
+    return;
+  }
+  frames.forEach(resizeFrame);
+}
+
+function scheduleResizeAllFrames() {
+  resizeAllFrames();
+  [120, 320, 700].forEach(delay => window.setTimeout(resizeAllFrames, delay));
+}
+
+window.addEventListener("load", () => {
+  scheduleResizeAllFrames();
+  document.querySelectorAll("iframe").forEach(frame => {
+    frame.addEventListener("load", scheduleResizeAllFrames);
+  });
+});
+window.addEventListener("resize", scheduleResizeAllFrames);
+window.addEventListener("orientationchange", scheduleResizeAllFrames);
+</script>
+</body>
+</html>

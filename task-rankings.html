@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoBench-SC 六大任务榜单</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --bg: #eef6ff;
+  --panel: #fbfdff;
+  --line: #dfe8f4;
+  --grid: #dfe6ef;
+  --text: #101826;
+  --muted: #5e6b7d;
+  --blue: #1358cf;
+  --shadow: 0 16px 36px rgba(33, 65, 108, 0.06);
+}
+html { background: var(--bg); font-size: 16px; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+button, input { font: inherit; }
+.page {
+  width: min(1628px, calc(100% - 410px));
+  margin: 0 auto;
+  padding: 28px 0 54px;
+}
+.page-title {
+  margin: 0 0 14px;
+  color: var(--blue);
+  font-size: 2.05rem;
+  line-height: 1.15;
+  font-weight: 880;
+}
+.intro {
+  margin: 0 0 14px;
+  color: #53637a;
+  font-size: 1.28rem;
+  line-height: 1.8;
+  text-indent: 2em;
+  font-weight: 560;
+}
+.selector-head {
+  margin: 10px 0 8px;
+  font-size: 1.12rem;
+  font-weight: 850;
+}
+.select-box {
+  position: relative;
+  margin-bottom: 42px;
+}
+.select-button {
+  width: 100%;
+  height: 58px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: #fbfdff;
+  color: #172238;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  font-size: 0.98rem;
+  cursor: pointer;
+}
+.select-panel {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 30;
+  border: 1px solid #d6e1ef;
+  border-radius: 10px;
+  background: #f7fbff;
+  box-shadow: 0 18px 44px rgba(18, 37, 65, 0.16);
+  overflow: hidden;
+}
+.select-box.open .select-panel { display: grid; }
+.select-tools {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #e4ebf4;
+}
+.select-tool {
+  min-width: 76px;
+  height: 38px;
+  border: 1px solid #dbe5f1;
+  border-radius: 6px;
+  background: #fbfdff;
+  color: #172238;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.model-options {
+  max-height: 238px;
+  overflow: auto;
+  padding: 6px 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 12px;
+}
+.model-options::-webkit-scrollbar { width: 10px; }
+.model-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #74839a;
+}
+.model-option {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 3px 0;
+  color: #172238;
+  font-size: 0.82rem;
+  overflow: hidden;
+}
+.model-option span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.model-option input {
+  width: 15px;
+  height: 15px;
+  accent-color: #1977f3;
+  flex: 0 0 auto;
+}
+.select-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px 14px;
+  border-top: 1px solid #e4ebf4;
+}
+.select-action {
+  height: 42px;
+  border: 1px solid #dbe5f1;
+  border-radius: 6px;
+  background: #fbfdff;
+  color: #172238;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.select-action.primary {
+  border-color: #1977f3;
+  color: #1977f3;
+}
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 38px;
+}
+.task-card {
+  min-height: 515px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(251,253,255,0.94);
+  box-shadow: var(--shadow);
+  padding: 24px 46px 8px 26px;
+  position: relative;
+}
+.task-title {
+  margin: 0;
+  text-align: center;
+  color: #061225;
+  font-size: 1.55rem;
+  font-weight: 880;
+  line-height: 1.2;
+}
+.download {
+  position: absolute;
+  top: 24px;
+  right: 54px;
+  min-width: 96px;
+  height: 42px;
+  border: 1px solid #e2e9f2;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #172238;
+  cursor: pointer;
+}
+.task-desc {
+  margin: 34px 0 26px;
+  padding: 18px 22px;
+  border: 1px solid #e3ebf4;
+  border-radius: 8px;
+  background: #f5f9fe;
+  color: #526176;
+  font-size: 1.02rem;
+  line-height: 1.62;
+  text-indent: 2em;
+}
+.chart {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  min-height: 270px;
+  width: min(100%, 565px);
+  margin: 0 auto;
+}
+.y-axis {
+  height: 138px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+  padding-right: 10px;
+  color: #7f8793;
+  font-size: 0.7rem;
+}
+.plot-area {
+  min-width: 0;
+  overflow: visible;
+}
+.plot {
+  height: 138px;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(11px, 1fr));
+  gap: 6px;
+  align-items: end;
+  border-bottom: 2px solid #aeb9c9;
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent 0,
+      transparent 38px,
+      var(--grid) 39px,
+      transparent 40px
+    );
+}
+.bar-item {
+  height: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  position: relative;
+}
+.bar-item::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--score) / 100 * 122px + 12px);
+  z-index: 20;
+  transform: translateX(-50%) translateY(8px);
+  min-width: 150px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d8dee8;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 10px 28px rgba(17, 29, 50, 0.14);
+  color: #4c5666;
+  white-space: pre-line;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.bar-item:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.bar {
+  width: min(100%, 15px);
+  height: calc(var(--score) / 100 * 122px);
+  min-height: 8px;
+  border-radius: 5px 5px 0 0;
+  background: var(--color);
+  position: relative;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  animation: barRise 0.58s cubic-bezier(0.2, 0.72, 0.2, 1) forwards;
+}
+.score-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+  color: #161b24;
+  font-size: 0.58rem;
+  font-weight: 650;
+  line-height: 1;
+  opacity: 0;
+  animation: labelFade 0.28s ease 0.3s forwards;
+}
+@keyframes barRise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes labelFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.x-axis {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(11px, 1fr));
+  gap: 6px;
+  min-height: 124px;
+}
+.label-cell {
+  min-width: 0;
+  position: relative;
+}
+.model-logo {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  width: 14.5px;
+  height: 14.5px;
+  display: block;
+  background: var(--logo-src) center / contain no-repeat;
+}
+.model-name {
+  position: absolute;
+  right: 50%;
+  top: 25px;
+  width: 82px;
+  transform: rotate(-60deg);
+  transform-origin: top right;
+  text-align: right;
+  white-space: nowrap;
+  color: #20252f;
+  font-size: 0.46rem;
+  line-height: 1.08;
+  font-weight: 700;
+}
+.radar-card {
+  min-height: 515px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+.radar-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 18px;
+}
+.radar-title {
+  margin: 0;
+  text-align: center;
+  color: #061225;
+  font-size: 1.55rem;
+  font-weight: 880;
+  line-height: 1.2;
+}
+.radar-select {
+  width: 208px;
+  height: 40px;
+  border: 1px solid #dbe5f1;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #172238;
+  padding: 0 12px;
+  font-size: 0.86rem;
+  outline: none;
+}
+.radar-subtitle {
+  width: 100%;
+  margin: 24px 0 8px;
+  padding: 14px 18px;
+  border: 1px solid #e3ebf4;
+  border-radius: 8px;
+  background: #f5f9fe;
+  color: #526176;
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.radar-wrap {
+  width: min(100%, 430px);
+  margin: 2px auto 0;
+  transform-origin: center;
+}
+.radar-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.radar-grid-line {
+  fill: none;
+  stroke: #d9e3ef;
+  stroke-width: 1;
+}
+.radar-axis {
+  stroke: #d4deea;
+  stroke-width: 1;
+}
+.radar-shape {
+  fill: color-mix(in srgb, var(--radar-color, #1358cf) 24%, transparent);
+  stroke: var(--radar-color, #1358cf);
+  stroke-width: 3;
+  filter: drop-shadow(0 10px 18px color-mix(in srgb, var(--radar-color, #1358cf) 22%, transparent));
+  transform-origin: center;
+}
+.radar-dot {
+  fill: var(--radar-color, #1358cf);
+  stroke: #fbfdff;
+  stroke-width: 3;
+  transform-origin: center;
+  transition: cx 0.24s ease, cy 0.24s ease;
+}
+.radar-label {
+  fill: #172238;
+  font-size: 14px;
+  font-weight: 800;
+}
+.radar-value {
+  fill: #526176;
+  font-size: 15px;
+  font-weight: 700;
+}
+.radar-current {
+  margin: 2px 0 0;
+  color: #172238;
+  font-size: 0.95rem;
+  font-weight: 800;
+  transition: opacity 0.16s ease;
+}
+@media (max-width: 1380px) {
+  .page { width: min(100% - 32px, 1628px); }
+  .task-grid { grid-template-columns: 1fr; }
+  .task-card { min-height: 585px; }
+  .radar-card { min-height: 560px; }
+}
+@media (max-width: 760px) {
+  .page { width: min(100% - 16px, 2020px); padding: 18px 0 34px; }
+  .page-title { font-size: 1.55rem; }
+  .intro { font-size: 1rem; text-indent: 0; }
+  .model-options { grid-template-columns: 1fr; }
+  .task-grid { gap: 24px; }
+  .task-card { min-height: auto; padding: 18px 14px 22px; overflow-x: auto; }
+  .download { position: static; margin: 12px auto 0; display: block; }
+  .task-desc { font-size: 1rem; }
+  .chart { min-width: 980px; }
+  .radar-head { grid-template-columns: 1fr; }
+  .radar-select { width: 100%; }
+  .radar-wrap { width: min(100%, 360px); }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <h1 class="page-title">五大核心任务榜单</h1>
+  <p class="intro">基于对称密码分析领域智能体测评与差分 / 线性密码分析专业经验，CryptoBench-SC 构建面向密码攻击实战落地的专业测评基准框架。本次测评聚焦密码分析实战能力，由五大核心任务构成，覆盖密码原语基础理解、攻击路径还原、密码方案规划、攻击代码实现、失败诊断修复，便于挖掘智能体在专业密码场景下的能力优势与短板。测评任务均为原创对称密码分析场景，包含多难度差分、线性攻击案例。</p>
+
+  <div class="selector-head" id="selectedCount">已选择 24/24 模型</div>
+  <div class="select-box" id="selectBox">
+    <button class="select-button" id="selectButton" type="button">
+      <span>选择模型</span>
+      <span>▼</span>
+    </button>
+    <div class="select-panel" id="selectPanel"></div>
+  </div>
+
+  <section class="task-grid" id="taskGrid"></section>
+</main>
+
+<script src="superclue-logo-data.js"></script>
+<script>
+const models = [
+  { key: "claude", name: "Claude-Opus-4.6(max)", color: "#ce9a72", logoFile: "superclue-logo-claude-opus.png", overallRank: 1 },
+  { key: "gemini-pro", name: "Gemini-3.1-Pro-Preview(high)", color: "#12b238", logoFile: "superclue-logo-gemini-pro-preview.png", overallRank: 2 },
+  { key: "gpt54", name: "GPT-5.4(xhigh)", color: "#000000", logoFile: "superclue-logo-gpt-54.png", overallRank: 3 },
+  { key: "doubao", name: "Doubao-Seed-2.0-Pro-260215(high)", color: "#9dcced", logoFile: "superclue-logo-doubao-seed.png", overallRank: 4 },
+  { key: "deepseek-pro", name: "DeepSeek-V4-Pro(max)", color: "#4867f0", logoFile: "superclue-logo-deepseek-v4-pro.png", overallRank: 5 },
+  { key: "gemini-flash", name: "Gemini-3-Flash-Preview(high)", color: "#12b238", logoFile: "superclue-logo-gemini-flash-preview.png", overallRank: 6 },
+  { key: "deepseek-flash", name: "DeepSeek-V4-Flash(max)", color: "#4867f0", logoFile: "superclue-logo-deepseek-v4-flash.png", overallRank: 7 },
+  { key: "grok", name: "Grok-4.20-Beta-0309(Reasoning)", color: "#3c3971", logoFile: "superclue-logo-grok-beta.png", overallRank: 8 },
+  { key: "kimi", name: "Kimi-K2.5-Thinking", color: "#7d7d7d", logoFile: "superclue-logo-kimi-thinking.png", overallRank: 9 },
+  { key: "qwen397", name: "Qwen3.5-397B-A17B-Thinking", color: "#7065ee", logoFile: "superclue-logo-qwen397-thinking.png", overallRank: 10 },
+  { key: "glm", name: "GLM-4.7-Thinking", color: "#58585e", logoFile: "superclue-logo-glm-thinking.png", overallRank: 11 },
+  { key: "deepseek32", name: "DeepSeek-V3.2-Thinking", color: "#4967f0", logoFile: "superclue-logo-deepseek-v32-thinking.png", overallRank: 12 },
+  { key: "mimo-pro", name: "MiMo-V2-Pro", color: "#ff7625", logoFile: "superclue-logo-mimo-v2-pro.png", overallRank: 13 },
+  { key: "tencent", name: "Tencent Hunyuan-T1-Think", color: "#f11c2c", logoFile: "superclue-logo-tencent-hunyuan.png", overallRank: 14 },
+  { key: "qwen12", name: "Qwen3.5-12B-A10B-Thinking", color: "#6d61ee", logoFile: "superclue-logo-qwen12-thinking.png", overallRank: 15 },
+  { key: "longcat", name: "LongCat-Flash-Thinking-2601", color: "#ffc400", logoFile: "superclue-logo-longcat-flash.png", overallRank: 16 },
+  { key: "gptoss", name: "gpt-oss-120b(high)", color: "#050505", logoFile: "superclue-logo-gpt-oss.png", overallRank: 17 },
+  { key: "step", name: "Step-3.5-Flash", color: "#1ccac4", logoFile: "superclue-logo-step-flash.png", overallRank: 18 },
+  { key: "minimax25", name: "MiniMax-M2.5", color: "#df1683", logoFile: "superclue-logo-minimax-m25.png", overallRank: 19 },
+  { key: "minimax27", name: "MiniMax-M2.7", color: "#dc167d", logoFile: "superclue-logo-minimax-m27.png", overallRank: 20 },
+  { key: "spark", name: "Spark X2", color: "#df0505", logoFile: "superclue-logo-spark-x2.png", overallRank: 21 },
+  { key: "mimo-flash", name: "MiMo-V2-Flash", color: "#ff7922", logoFile: "superclue-logo-mimo-v2-flash.png", overallRank: 22 },
+  { key: "mistral", name: "Mistral Large 3", color: "#ff7a00", logoFile: "superclue-logo-mistral-large.png", overallRank: 23 },
+  { key: "llama", name: "Llama-4-Maverick-17B-128E-Instruct", color: "#7fc2ef", logoFile: "superclue-logo-llama-maverick.png", overallRank: 24 }
+];
+
+const tasks = [
+  {
+    id: "math",
+    title: "T1 密码原语基础理解",
+    desc: "密码原语基础理解主要考察智能体对分组密码结构、S 盒、轮函数、密钥扩展、差分与线性传播规则等密码基础要素的解析与信息提取能力，基于密码学专业标准答案进行综合评估。",
+    scores: [
+      ["gemini-pro", 92], ["deepseek-flash", 89], ["gpt54", 89], ["deepseek-pro", 87], ["claude", 86], ["gemini-flash", 86],
+      ["grok", 86], ["doubao", 85], ["qwen397", 85], ["mimo-pro", 84], ["qwen12", 82], ["kimi", 82], ["step", 81],
+      ["gptoss", 80], ["deepseek32", 78], ["minimax27", 78], ["spark", 78], ["longcat", 77], ["tencent", 76], ["glm", 74],
+      ["minimax25", 74], ["mimo-flash", 70], ["mistral", 49], ["llama", 39]
+    ]
+  },
+  {
+    id: "science",
+    title: "T2 攻击路径还原",
+    desc: "攻击路径还原主要考察智能体复盘经典差分 / 线性密码攻击、识别有效区分器、推导密钥搜索空间、还原完整攻击逻辑的能力，基于标准攻击案例与密钥结果进行评估。",
+    scores: [
+      ["claude", 85], ["gpt54", 84], ["gemini-pro", 82], ["gemini-flash", 82], ["doubao", 80], ["deepseek-pro", 79],
+      ["deepseek-flash", 79], ["grok", 78], ["qwen397", 76], ["glm", 75], ["mimo-pro", 74], ["deepseek32", 73],
+      ["gptoss", 73], ["spark", 72], ["tencent", 71], ["qwen12", 70], ["longcat", 70], ["kimi", 68], ["step", 68],
+      ["minimax25", 66], ["minimax27", 65], ["mistral", 55], ["mimo-flash", 54], ["llama", 48]
+    ]
+  },
+  {
+    id: "code",
+    title: "T3 密码方案规划",
+    desc: "密码方案规划主要考察智能体针对目标分组密码算法，设计完整差分 / 线性攻击方案、规划实验步骤、制定密钥枚举策略、拆解密码分析全流程的能力，基于方案完整性与可行性进行综合评分。",
+    scores: [
+      ["claude", 71], ["gemini-pro", 70], ["kimi", 66], ["gemini-flash", 64], ["doubao", 64], ["deepseek-pro", 63],
+      ["deepseek-flash", 61], ["deepseek32", 60], ["mimo-pro", 60], ["minimax27", 59], ["glm", 58], ["tencent", 58],
+      ["minimax25", 55], ["grok", 55], ["mimo-flash", 54], ["gptoss", 53], ["gpt54", 52], ["longcat", 52],
+      ["qwen397", 51], ["step", 51], ["qwen12", 50], ["mistral", 42], ["spark", 41], ["llama", 40]
+    ]
+  },
+  {
+    id: "agent-planning",
+    title: "T4 攻击代码实现",
+    desc: "攻击代码实现主要考察智能体将密码攻击方案转化为可运行 Python 代码，实现差分概率计算、密钥搜索、攻击验证等工程化落地的能力，通过自动验证器校验代码可执行性与攻击有效性进行评分。",
+    scores: [
+      ["claude", 89], ["doubao", 81], ["gpt54", 80], ["gemini-pro", 79], ["kimi", 78], ["deepseek-pro", 77],
+      ["deepseek-flash", 75], ["qwen397", 72], ["longcat", 68], ["grok", 67], ["glm", 67], ["minimax25", 66],
+      ["qwen12", 65], ["step", 64], ["gemini-flash", 64], ["spark", 62], ["gptoss", 61], ["tencent", 60],
+      ["minimax27", 60], ["deepseek32", 57], ["mimo-flash", 56], ["mimo-pro", 56], ["mistral", 45], ["llama", 24]
+    ]
+  },
+  {
+    id: "hallucination",
+    title: "T5 失败诊断与修复",
+    desc: "失败诊断与修复主要考察智能体在攻击执行失败、代码报错、差分特征失效时，定位问题根源、修复攻击逻辑与脚本、迭代优化方案的能力，基于故障定位准确率与修复成功率进行评估。",
+    scores: [
+      ["glm", 87], ["gpt54", 85], ["qwen397", 84], ["claude", 83], ["gemini-flash", 82], ["deepseek-pro", 81],
+      ["gemini-pro", 80], ["doubao", 79], ["grok", 78], ["kimi", 78], ["deepseek32", 77], ["tencent", 76],
+      ["deepseek-flash", 76], ["mimo-pro", 74], ["qwen12", 71], ["minimax27", 67], ["llama", 67], ["longcat", 66],
+      ["step", 64], ["mimo-flash", 63], ["spark", 62], ["minimax25", 56], ["gptoss", 55], ["mistral", 52]
+    ]
+  }
+];
+
+const modelByKey = new Map(models.map(model => [model.key, model]));
+const selected = new Set(models.map(model => model.key));
+const draftSelected = new Set(selected);
+const taskGrid = document.getElementById("taskGrid");
+const selectPanel = document.getElementById("selectPanel");
+const selectBox = document.getElementById("selectBox");
+const selectedCount = document.getElementById("selectedCount");
+let radarModelKey = "claude";
+
+function render() {
+  selectedCount.textContent = `已选择 ${selected.size}/${models.length} 模型`;
+  taskGrid.innerHTML = tasks.map(task => renderTask(task)).join("") + renderRadarCard();
+  renderOptions();
+}
+
+function renderTask(task) {
+  const rows = task.scores
+    .filter(([key]) => selected.has(key))
+    .map(([key, score]) => ({ ...modelByKey.get(key), score }));
+  return `
+    <article class="task-card">
+      <h2 class="task-title">${task.title}</h2>
+      <button class="download" type="button" data-download="${task.id}">下载图片</button>
+      <p class="task-desc">${task.desc}</p>
+      <div class="chart">
+        <div class="y-axis"><span>100</span><span>80</span><span>60</span><span>40</span><span>20</span><span>0</span></div>
+        <div class="plot-area">
+          <div class="plot" style="--count:${rows.length}">
+            ${rows.map(row => `
+              <div class="bar-item" style="--score:${row.score}" data-tip="${row.name}&#10;${task.title}：${row.score}">
+                <div class="bar" style="--score:${row.score};--color:${row.color}">
+                  <span class="score-label">${row.score}</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="x-axis" style="--count:${rows.length}">
+            ${rows.map(row => `
+              <div class="label-cell">
+                <span class="model-logo" style="--logo-src:url('${row.logoFile}')"></span>
+                <div class="model-name">${formatModelName(row.name)}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function formatModelName(name) {
+  const breaks = {
+    "Gemini-3.1-Pro-Preview(high)": "Gemini-3.1-Pro<br>Preview(high)",
+    "Doubao-Seed-2.0-Pro-260215(high)": "Doubao-Seed-2.0-Pro<br>260215(high)",
+    "DeepSeek-V4-Flash(max)": "DeepSeek-V4-Flash<br>(max)",
+    "DeepSeek-V3.2-Thinking": "DeepSeek-V3.2<br>Thinking",
+    "Gemini-3-Flash-Preview(high)": "Gemini-3-Flash<br>Preview(high)",
+    "Grok-4.20-Beta-0309(Reasoning)": "Grok-4.20-Beta-0309<br>(Reasoning)",
+    "Qwen3.5-397B-A17B-Thinking": "Qwen3.5-397B-A17B<br>Thinking",
+    "Tencent Hunyuan-T1-Think": "Tencent Hunyuan<br>T1-Think",
+    "Qwen3.5-12B-A10B-Thinking": "Qwen3.5-12B-A10B<br>Thinking",
+    "LongCat-Flash-Thinking-2601": "LongCat-Flash<br>Thinking-2601",
+    "Llama-4-Maverick-17B-128E-Instruct": "Llama-4-Maverick<br>17B-128E-Instruct"
+  };
+  return breaks[name] || name;
+}
+
+function renderRadarCard() {
+  const current = modelByKey.get(radarModelKey) || models[0];
+  const dimensions = getRadarDimensions(current.key);
+  const center = 210;
+  const radius = 128;
+  const rings = [20, 40, 60, 80, 100]
+    .map(level => polygonPath(dimensions.length, center, radius * level / 100));
+  const axes = dimensions.map((_, index) => {
+    const point = radarPoint(index, dimensions.length, center, radius);
+    return `<line class="radar-axis" x1="${center}" y1="${center}" x2="${point.x.toFixed(2)}" y2="${point.y.toFixed(2)}"></line>`;
+  }).join("");
+  const shape = radarShapePath(dimensions, center, radius);
+  const dots = dimensions.map((item, index) => {
+    const point = radarPoint(index, dimensions.length, center, radius * item.value / 100);
+    return `<circle class="radar-dot" data-radar-dot="${index}" cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="5"></circle>`;
+  }).join("");
+  const labels = dimensions.map((item, index) => {
+    const point = radarPoint(index, dimensions.length, center, radius + 42);
+    return `
+      <text class="radar-label" x="${point.x.toFixed(2)}" y="${point.y.toFixed(2)}" text-anchor="middle">${item.label}</text>
+      <text class="radar-value" x="${point.x.toFixed(2)}" y="${(point.y + 17).toFixed(2)}" text-anchor="middle">${item.value}</text>
+    `;
+  }).join("");
+
+  return `
+    <article class="task-card radar-card" id="radarCard">
+      <div class="radar-head">
+        <h2 class="radar-title">核心分析视角</h2>
+        <select class="radar-select" id="radarSelect" aria-label="选择雷达图模型">
+          ${models.map(model => `<option value="${model.key}" ${model.key === current.key ? "selected" : ""}>${model.name}</option>`).join("")}
+        </select>
+      </div>
+      <p class="radar-subtitle">选择任一模型，查看其在五大核心任务上的能力轮廓：T1 理解、T2 还原、T3 规划、T4 实现、T5 修复。</p>
+      <div class="radar-wrap">
+        <svg class="radar-svg" id="radarSvg" style="--radar-color:${current.color}" viewBox="0 0 420 380" role="img" aria-label="${current.name} 核心分析视角雷达图">
+          ${rings.map(path => `<path class="radar-grid-line" d="${path}"></path>`).join("")}
+          ${axes}
+          <path class="radar-shape" id="radarShape" d="${shape}"></path>
+          ${dots}
+          ${labels}
+        </svg>
+      </div>
+      <p class="radar-current" id="radarCurrent">${current.name} · 综合排名第 ${current.overallRank}</p>
+    </article>
+  `;
+}
+
+function getRadarDimensions(modelKey) {
+  return [
+    { label: "T1理解", taskId: "math" },
+    { label: "T2还原", taskId: "science" },
+    { label: "T3规划", taskId: "code" },
+    { label: "T4实现", taskId: "agent-planning" },
+    { label: "T5修复", taskId: "hallucination" }
+  ].map(item => ({
+    ...item,
+    value: getTaskScore(item.taskId, modelKey)
+  }));
+}
+
+function getTaskScore(taskId, modelKey) {
+  const task = tasks.find(item => item.id === taskId);
+  return task?.scores.find(([key]) => key === modelKey)?.[1] ?? 0;
+}
+
+function polygonPath(count, center, radius) {
+  return Array.from({ length: count }, (_, index) => {
+    const point = radarPoint(index, count, center, radius);
+    return `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+  }).join(" ") + " Z";
+}
+
+function radarShapePath(dimensions, center, radius) {
+  return dimensions.map((item, index) => {
+    const point = radarPoint(index, dimensions.length, center, radius * item.value / 100);
+    return `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
+  }).join(" ") + " Z";
+}
+
+function radarPoint(index, count, center, radius) {
+  const angle = -Math.PI / 2 + index * 2 * Math.PI / count;
+  return {
+    x: center + Math.cos(angle) * radius,
+    y: center + Math.sin(angle) * radius
+  };
+}
+
+function renderOptions() {
+  selectPanel.innerHTML = `
+    <div class="select-tools">
+      <button class="select-tool" type="button" data-select-action="all">全选</button>
+      <button class="select-tool" type="button" data-select-action="clear">清空</button>
+      <button class="select-tool" type="button" data-select-action="reset">恢复默认</button>
+    </div>
+    <div class="model-options">
+      ${models.map(model => `
+        <label class="model-option">
+          <input type="checkbox" data-model="${model.key}" ${draftSelected.has(model.key) ? "checked" : ""}>
+          <span>${model.name}</span>
+        </label>
+      `).join("")}
+    </div>
+    <div class="select-actions">
+      <button class="select-action primary" type="button" data-select-action="apply">应用</button>
+      <button class="select-action" type="button" data-select-action="cancel">取消</button>
+    </div>
+  `;
+}
+
+document.getElementById("selectButton").addEventListener("click", () => {
+  draftSelected.clear();
+  selected.forEach(key => draftSelected.add(key));
+  renderOptions();
+  selectBox.classList.toggle("open");
+});
+
+document.addEventListener("click", event => {
+  if (!selectBox.contains(event.target)) selectBox.classList.remove("open");
+});
+
+selectPanel.addEventListener("change", event => {
+  event.stopPropagation();
+  const input = event.target.closest("[data-model]");
+  if (!input) return;
+  if (input.checked) draftSelected.add(input.dataset.model);
+  else draftSelected.delete(input.dataset.model);
+});
+
+selectPanel.addEventListener("click", event => {
+  event.stopPropagation();
+  const button = event.target.closest("[data-select-action]");
+  if (!button) return;
+  const action = button.dataset.selectAction;
+  if (action === "all" || action === "reset") {
+    draftSelected.clear();
+    models.forEach(model => draftSelected.add(model.key));
+    renderOptions();
+  }
+  if (action === "clear") {
+    draftSelected.clear();
+    renderOptions();
+  }
+  if (action === "apply") {
+    selected.clear();
+    draftSelected.forEach(key => selected.add(key));
+    render();
+    selectBox.classList.remove("open");
+  }
+  if (action === "cancel") {
+    draftSelected.clear();
+    selected.forEach(key => draftSelected.add(key));
+    renderOptions();
+    selectBox.classList.remove("open");
+  }
+});
+
+document.addEventListener("click", event => {
+  const button = event.target.closest("[data-download]");
+  if (!button) return;
+  downloadTask(button.dataset.download);
+});
+
+document.addEventListener("change", event => {
+  const select = event.target.closest("#radarSelect");
+  if (!select) return;
+  updateRadar(select.value);
+});
+
+function updateRadar(nextModelKey) {
+  const previousKey = radarModelKey;
+  radarModelKey = nextModelKey;
+  const shape = document.getElementById("radarShape");
+  const svg = document.getElementById("radarSvg");
+  const current = document.getElementById("radarCurrent");
+  const dots = Array.from(document.querySelectorAll("[data-radar-dot]"));
+  const model = modelByKey.get(nextModelKey) || models[0];
+  if (svg) svg.style.setProperty("--radar-color", model.color);
+  const dimensions = getRadarDimensions(nextModelKey);
+  const center = 210;
+  const radius = 128;
+  if (!shape || dots.length !== dimensions.length) {
+    const radarCard = document.getElementById("radarCard");
+    if (radarCard) radarCard.outerHTML = renderRadarCard();
+    return;
+  }
+  const fromDimensions = getRadarDimensions(previousKey);
+  const fromPoints = fromDimensions.map((item, index) => radarPoint(index, fromDimensions.length, center, radius * item.value / 100));
+  const toPoints = dimensions.map((item, index) => radarPoint(index, dimensions.length, center, radius * item.value / 100));
+  const duration = 420;
+  const start = performance.now();
+  if (current) current.style.opacity = "0.3";
+
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const points = toPoints.map((point, index) => ({
+      x: fromPoints[index].x + (point.x - fromPoints[index].x) * eased,
+      y: fromPoints[index].y + (point.y - fromPoints[index].y) * eased
+    }));
+    shape.setAttribute("d", points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ") + " Z");
+    dots.forEach((dot, index) => {
+      dot.setAttribute("cx", points[index].x.toFixed(2));
+      dot.setAttribute("cy", points[index].y.toFixed(2));
+    });
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else if (current) {
+      current.textContent = `${model.name} · 综合排名第 ${model.overallRank}`;
+      current.style.opacity = "1";
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+async function downloadTask(taskId) {
+  const task = tasks.find(item => item.id === taskId);
+  if (!task) return;
+  const rows = task.scores.filter(([key]) => selected.has(key)).map(([key, score]) => ({ ...modelByKey.get(key), score }));
+  const logoImages = await Promise.all(rows.map(row => loadImage(row.logoFile)));
+  const canvas = document.createElement("canvas");
+  canvas.width = 1200;
+  canvas.height = 720;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fbfdff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#061225";
+  ctx.font = "bold 32px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(task.title, canvas.width / 2, 52);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#526176";
+  ctx.font = "18px sans-serif";
+  wrapText(ctx, task.desc, 54, 92, 1090, 28);
+  const chartX = 90;
+  const chartY = 260;
+  const chartW = 1040;
+  const chartH = 250;
+  ctx.strokeStyle = "#dfe6ef";
+  ctx.fillStyle = "#7f8793";
+  ctx.font = "15px sans-serif";
+  for (let i = 0; i <= 5; i++) {
+    const value = i * 20;
+    const y = chartY + chartH - (value / 100) * chartH;
+    ctx.beginPath();
+    ctx.moveTo(chartX, y);
+    ctx.lineTo(chartX + chartW, y);
+    ctx.stroke();
+    ctx.fillText(String(value), 52, y + 5);
+  }
+  const gap = 10;
+  const barW = Math.max(18, (chartW - gap * (rows.length - 1)) / rows.length);
+  rows.forEach((row, index) => {
+    const h = row.score / 100 * chartH;
+    const x = chartX + index * (barW + gap);
+    const y = chartY + chartH - h;
+    ctx.fillStyle = row.color;
+    roundRect(ctx, x, y, barW, h, 5);
+    ctx.fill();
+    ctx.fillStyle = "#111";
+    ctx.font = "bold 15px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(row.score, x + barW / 2, y - 8);
+    const logo = logoImages[index];
+    if (logo) ctx.drawImage(logo, x + barW / 2 - 12, chartY + chartH + 14, 24, 24);
+    ctx.save();
+    ctx.translate(x + barW / 2, chartY + chartH + 56);
+    ctx.rotate(-Math.PI / 3);
+    ctx.textAlign = "right";
+    ctx.font = "13px sans-serif";
+    ctx.fillText(row.name, 0, 0);
+    ctx.restore();
+  });
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `cryptobench-${task.id}.png`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function loadImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = window.SUPERCLUE_LOGO_DATA?.[src] || src;
+  });
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height);
+  ctx.lineTo(x, y + height);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  let line = "";
+  for (const char of text) {
+    const test = line + char;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      line = char;
+      y += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line, x, y);
+}
+
+render();
+</script>
+</body>
+</html>

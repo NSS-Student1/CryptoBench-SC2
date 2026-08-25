@@ -1,0 +1,375 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Highlights - Agent Benchmark</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --text: #06070a;
+  --muted: #8b9199;
+  --line: #dedede;
+  --grid: #e6e6e6;
+  --card: #ffffff;
+  --purple: #7c3ff2;
+  --yellow: #ffd400;
+  --orange: #ff7433;
+  --black: #202124;
+  --green: #34a853;
+  --lime: #86b934;
+  --blue: #1885ed;
+  --deep-blue: #2d49df;
+  --violet: #7469d6;
+  --clay: #cf775d;
+}
+html { font-size: 16px; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: #eef6ff;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.45;
+}
+.page {
+  width: min(1730px, calc(100% - 300px));
+  margin: 0 auto;
+  padding: 26px 0 28px;
+}
+.section-title {
+  margin: 0;
+  color: #1358cf;
+  font-size: 2.15rem;
+  line-height: 1.2;
+  font-weight: 880;
+  letter-spacing: 0;
+}
+.rule {
+  height: 1px;
+  margin: 20px 0 30px;
+  background: var(--line);
+}
+.highlight-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+.card {
+  min-height: 430px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 26px 20px 20px;
+  overflow: visible;
+  position: relative;
+}
+.card-head {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.metric-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.swatch {
+  width: 23px;
+  height: 23px;
+  display: inline-block;
+  flex: 0 0 auto;
+  background: var(--accent);
+}
+.metric-title h2 {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  font-size: clamp(1.9rem, 1.75vw, 2.18rem);
+  line-height: 1;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 560;
+}
+.chart {
+  position: relative;
+  height: 284px;
+  margin: 0 10px;
+  display: grid;
+  grid-template-rows: 176px 86px;
+  align-items: end;
+}
+.plot {
+  position: relative;
+  height: 176px;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: 15px;
+  align-items: end;
+  padding: 0 8px;
+  border-bottom: 2px solid #eeeeee;
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent 0,
+      transparent 30px,
+      var(--grid) 31px,
+      transparent 32px
+    );
+}
+.bar-wrap {
+  height: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  position: relative;
+}
+.bar-wrap::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--value) / var(--max) * 146px + 14px);
+  transform: translateX(-50%) translateY(6px);
+  z-index: 30;
+  min-width: 132px;
+  max-width: 190px;
+  padding: 8px 10px;
+  border: 1px solid #d6d6d6;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.97);
+  color: #111;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  white-space: pre-line;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.bar-wrap:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.price .bar-wrap::after {
+  bottom: calc(var(--value) / var(--max) * 132px + 18px);
+}
+.bar {
+  width: min(100%, 31px);
+  height: calc(var(--value) / var(--max) * 146px);
+  min-height: 6px;
+  border-radius: 4px 4px 0 0;
+  background: var(--color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bar-label {
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1;
+}
+.price .bar-label {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  color: #111;
+  font-size: 0.76rem;
+}
+.low-bar .bar-label {
+  bottom: calc(100% + 8px);
+}
+.labels {
+  height: 86px;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(0, 1fr));
+  gap: 15px;
+  padding: 0 8px;
+  overflow: visible;
+}
+.label-item {
+  min-width: 0;
+  position: relative;
+}
+.agent-label {
+  position: absolute;
+  left: calc(50% - 112px);
+  top: 38px;
+  transform: rotate(-52deg);
+  transform-origin: top right;
+  width: 112px;
+  white-space: nowrap;
+  text-align: right;
+  color: #0e1115;
+  font-size: 0.68rem;
+  line-height: 1.08;
+  font-weight: 400;
+}
+.logo {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  width: 21px;
+  height: 21px;
+  display: block;
+  background: var(--logo-src) center / contain no-repeat;
+}
+.logo-openai { --logo-src: url("logo-openai.png"); }
+.logo-ai { --logo-src: url("logo-ai.png"); }
+.logo-google { --logo-src: url("logo-google.png"); }
+.logo-kimi { --logo-src: url("logo-kimi.png"); }
+.logo-mimo { --logo-src: url("logo-mimo.png"); }
+.logo-xai { --logo-src: url("logo-xai.png"); }
+.logo-meta { --logo-src: url("logo-meta.png"); }
+.logo-deepseek { --logo-src: url("logo-deepseek.png"); }
+.logo-z { --logo-src: url("logo-z.png"); }
+.logo-nvidia { --logo-src: url("logo-nvidia.png"); }
+}
+.price .plot {
+  padding-top: 10px;
+}
+.price .bar {
+  height: calc(var(--value) / var(--max) * 132px);
+}
+@media (max-width: 1180px) {
+  .highlight-grid { grid-template-columns: 1fr; }
+  .card { min-height: 430px; }
+  .plot, .labels { gap: 14px; }
+}
+@media (max-width: 620px) {
+  .page { width: min(100% - 24px, 1730px); }
+  .card { padding: 20px 14px; }
+  .chart { margin: 0; overflow-x: auto; }
+  .plot,
+  .labels {
+    min-width: 620px;
+  }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <h1 class="section-title">核心测评概览</h1>
+  <div class="rule"></div>
+
+  <section class="highlight-grid" aria-label="Benchmark highlights">
+    <article class="card" style="--accent: var(--purple);">
+      <header class="card-head">
+        <div class="metric-title">
+          <span class="swatch" aria-hidden="true"></span>
+          <h2>综合总分</h2>
+        </div>
+        <p class="subtitle">综合总分・Benchmark 总分・数值越高越好</p>
+      </header>
+      <div class="chart" style="--count: 11; --max: 70;">
+        <div class="plot">
+          <div class="bar-wrap" data-tip="GPT-5.5(xhigh)&#10;综合得分：60"><div class="bar" style="--value:60;--color:var(--black);"><span class="bar-label">60</span></div></div>
+          <div class="bar-wrap" data-tip="Claude Opus 4.7(max)&#10;综合得分：57"><div class="bar" style="--value:57;--color:var(--clay);"><span class="bar-label">57</span></div></div>
+          <div class="bar-wrap" data-tip="Gemini 3.1 Pro Preview&#10;综合得分：57"><div class="bar" style="--value:57;--color:var(--green);"><span class="bar-label">57</span></div></div>
+          <div class="bar-wrap" data-tip="Kimi K2.6&#10;综合得分：54"><div class="bar" style="--value:54;--color:var(--blue);"><span class="bar-label">54</span></div></div>
+          <div class="bar-wrap" data-tip="MiMo-V2.5-Pro&#10;综合得分：54"><div class="bar" style="--value:54;--color:#ff6a00;"><span class="bar-label">54</span></div></div>
+          <div class="bar-wrap" data-tip="Grok 4.3&#10;综合得分：53"><div class="bar" style="--value:53;--color:var(--violet);"><span class="bar-label">53</span></div></div>
+          <div class="bar-wrap" data-tip="Muse Spark&#10;综合得分：52"><div class="bar" style="--value:52;--color:#1392e5;"><span class="bar-label">52</span></div></div>
+          <div class="bar-wrap" data-tip="DeepSeek V4-Pro(Max)&#10;综合得分：52"><div class="bar" style="--value:52;--color:var(--deep-blue);"><span class="bar-label">52</span></div></div>
+          <div class="bar-wrap" data-tip="GLM-5.1&#10;综合得分：51"><div class="bar" style="--value:51;--color:#2285ef;"><span class="bar-label">51</span></div></div>
+          <div class="bar-wrap" data-tip="NVIDIA Nemotron Super&#10;综合得分：36"><div class="bar" style="--value:36;--color:var(--lime);"><span class="bar-label">36</span></div></div>
+          <div class="bar-wrap" data-tip="gpt-oss-120B(high)&#10;综合得分：33"><div class="bar" style="--value:33;--color:var(--black);"><span class="bar-label">33</span></div></div>
+        </div>
+        <div class="labels">
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">GPT-5.5<br>(xhigh)</div></div>
+          <div class="label-item"><span class="logo logo-ai"></span><div class="agent-label">Claude Opus<br>4.7 (max)</div></div>
+          <div class="label-item"><span class="logo logo-google"></span><div class="agent-label">Gemini 3.1<br>Pro Preview</div></div>
+          <div class="label-item"><span class="logo logo-kimi"></span><div class="agent-label">Kimi K2.6</div></div>
+          <div class="label-item"><span class="logo logo-mimo"></span><div class="agent-label">MiMo-V2.5-Pro</div></div>
+          <div class="label-item"><span class="logo logo-xai"></span><div class="agent-label">Grok 4.3</div></div>
+          <div class="label-item"><span class="logo logo-meta"></span><div class="agent-label">Muse Spark</div></div>
+          <div class="label-item"><span class="logo logo-deepseek"></span><div class="agent-label">DeepSeek<br>V4-Pro (Max)</div></div>
+          <div class="label-item"><span class="logo logo-z"></span><div class="agent-label">GLM-5.1</div></div>
+          <div class="label-item"><span class="logo logo-nvidia"></span><div class="agent-label">NVIDIA<br>Nemotron Super</div></div>
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">gpt-oss-120B<br>(high)</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" style="--accent: var(--yellow);">
+      <header class="card-head">
+        <div class="metric-title">
+          <span class="swatch" aria-hidden="true"></span>
+          <h2>执行速度</h2>
+        </div>
+        <p class="subtitle">执行速度・每分钟完成任务数・数值越高越好</p>
+      </header>
+      <div class="chart" style="--count: 10; --max: 240;">
+        <div class="plot">
+          <div class="bar-wrap" data-tip="gpt-oss-120B(high)&#10;执行速度：216"><div class="bar" style="--value:216;--color:var(--black);"><span class="bar-label">216</span></div></div>
+          <div class="bar-wrap" data-tip="NVIDIA Nemotron Super&#10;执行速度：177"><div class="bar" style="--value:177;--color:var(--lime);"><span class="bar-label">177</span></div></div>
+          <div class="bar-wrap" data-tip="Gemini 3.1 Pro Preview&#10;执行速度：133"><div class="bar" style="--value:133;--color:var(--green);"><span class="bar-label">133</span></div></div>
+          <div class="bar-wrap" data-tip="Grok 4.3&#10;执行速度：83"><div class="bar" style="--value:83;--color:var(--violet);"><span class="bar-label">83</span></div></div>
+          <div class="bar-wrap" data-tip="Claude Opus 4.7(max)&#10;执行速度：72"><div class="bar" style="--value:72;--color:var(--clay);"><span class="bar-label">72</span></div></div>
+          <div class="bar-wrap" data-tip="GPT-5.5(xhigh)&#10;执行速度：71"><div class="bar" style="--value:71;--color:var(--black);"><span class="bar-label">71</span></div></div>
+          <div class="bar-wrap" data-tip="MiMo-V2.5-Pro&#10;执行速度：56"><div class="bar" style="--value:56;--color:#ff6a00;"><span class="bar-label">56</span></div></div>
+          <div class="bar-wrap" data-tip="GLM-5.1&#10;执行速度：53"><div class="bar" style="--value:53;--color:#1392e5;"><span class="bar-label">53</span></div></div>
+          <div class="bar-wrap" data-tip="Kimi K2.6&#10;执行速度：48"><div class="bar" style="--value:48;--color:var(--blue);"><span class="bar-label">48</span></div></div>
+          <div class="bar-wrap" data-tip="DeepSeek V4-Pro(Max)&#10;执行速度：30"><div class="bar" style="--value:30;--color:var(--deep-blue);"><span class="bar-label">30</span></div></div>
+        </div>
+        <div class="labels">
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">gpt-oss-120B<br>(high)</div></div>
+          <div class="label-item"><span class="logo logo-nvidia"></span><div class="agent-label">NVIDIA<br>Nemotron Super</div></div>
+          <div class="label-item"><span class="logo logo-google"></span><div class="agent-label">Gemini 3.1<br>Pro Preview</div></div>
+          <div class="label-item"><span class="logo logo-xai"></span><div class="agent-label">Grok 4.3</div></div>
+          <div class="label-item"><span class="logo logo-ai"></span><div class="agent-label">Claude Opus<br>4.7 (max)</div></div>
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">GPT-5.5<br>(xhigh)</div></div>
+          <div class="label-item"><span class="logo logo-mimo"></span><div class="agent-label">MiMo-V2.5-Pro</div></div>
+          <div class="label-item"><span class="logo logo-z"></span><div class="agent-label">GLM-5.1</div></div>
+          <div class="label-item"><span class="logo logo-kimi"></span><div class="agent-label">Kimi K2.6</div></div>
+          <div class="label-item"><span class="logo logo-deepseek"></span><div class="agent-label">DeepSeek V4<br>Pro (Max)</div></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card price" style="--accent: var(--orange);">
+      <header class="card-head">
+        <div class="metric-title">
+          <span class="swatch" aria-hidden="true"></span>
+          <h2>任务成本</h2>
+        </div>
+        <p class="subtitle">任务成本・每任务美元成本（输入输出比为 3:1）・数值越低越好</p>
+      </header>
+      <div class="chart" style="--count: 10; --max: 12;">
+        <div class="plot">
+          <div class="bar-wrap" data-tip="gpt-oss-120B(high)&#10;任务成本：0.3"><div class="bar low-bar" style="--value:0.3;--color:var(--black);"><span class="bar-label">0.3</span></div></div>
+          <div class="bar-wrap" data-tip="NVIDIA Nemotron Super&#10;任务成本：0.4"><div class="bar low-bar" style="--value:0.4;--color:var(--lime);"><span class="bar-label">0.4</span></div></div>
+          <div class="bar-wrap" data-tip="MiMo-V2.5-Pro&#10;任务成本：1.5"><div class="bar low-bar" style="--value:1.5;--color:#ff6a00;"><span class="bar-label">1.5</span></div></div>
+          <div class="bar-wrap" data-tip="Grok 4.3&#10;任务成本：1.6"><div class="bar low-bar" style="--value:1.6;--color:var(--violet);"><span class="bar-label">1.6</span></div></div>
+          <div class="bar-wrap" data-tip="Kimi K2.6&#10;任务成本：1.7"><div class="bar low-bar" style="--value:1.7;--color:var(--blue);"><span class="bar-label">1.7</span></div></div>
+          <div class="bar-wrap" data-tip="GLM-5.1&#10;任务成本：2.1"><div class="bar low-bar" style="--value:2.1;--color:#2285ef;"><span class="bar-label">2.1</span></div></div>
+          <div class="bar-wrap" data-tip="DeepSeek V4-Pro(Max)&#10;任务成本：2.2"><div class="bar low-bar" style="--value:2.2;--color:var(--deep-blue);"><span class="bar-label">2.2</span></div></div>
+          <div class="bar-wrap" data-tip="Gemini 3.1 Pro Preview&#10;任务成本：4.5"><div class="bar" style="--value:4.5;--color:var(--green);"><span class="bar-label">4.5</span></div></div>
+          <div class="bar-wrap" data-tip="Claude Opus 4.7(max)&#10;任务成本：10.9"><div class="bar" style="--value:10.9;--color:var(--clay);"><span class="bar-label">10.9</span></div></div>
+          <div class="bar-wrap" data-tip="GPT-5.5(xhigh)&#10;任务成本：11.3"><div class="bar" style="--value:11.3;--color:var(--black);"><span class="bar-label">11.3</span></div></div>
+        </div>
+        <div class="labels">
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">gpt-oss-120B<br>(high)</div></div>
+          <div class="label-item"><span class="logo logo-nvidia"></span><div class="agent-label">NVIDIA<br>Nemotron Super</div></div>
+          <div class="label-item"><span class="logo logo-mimo"></span><div class="agent-label">MiMo-V2.5-Pro</div></div>
+          <div class="label-item"><span class="logo logo-xai"></span><div class="agent-label">Grok 4.3</div></div>
+          <div class="label-item"><span class="logo logo-kimi"></span><div class="agent-label">Kimi K2.6</div></div>
+          <div class="label-item"><span class="logo logo-z"></span><div class="agent-label">GLM-5.1</div></div>
+          <div class="label-item"><span class="logo logo-deepseek"></span><div class="agent-label">DeepSeek V4<br>Pro (Max)</div></div>
+          <div class="label-item"><span class="logo logo-google"></span><div class="agent-label">Gemini 3.1<br>Pro Preview</div></div>
+          <div class="label-item"><span class="logo logo-ai"></span><div class="agent-label">Claude Opus<br>4.7 (max)</div></div>
+          <div class="label-item"><span class="logo logo-openai"></span><div class="agent-label">GPT-5.5<br>(xhigh)</div></div>
+        </div>
+      </div>
+    </article>
+  </section>
+</main>
+</body>
+</html>
+

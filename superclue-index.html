@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoBench-SC 密码分析智能体综合指数</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  --bg: #eef6ff;
+  --panel: #fbfdff;
+  --line: #dfe8f4;
+  --grid: #dfe6ef;
+  --text: #101826;
+  --muted: #5e6b7d;
+  --blue: #1d63d8;
+  --shadow: 0 16px 36px rgba(33, 65, 108, 0.06);
+}
+html { font-size: 16px; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+}
+button, input { font: inherit; }
+.page {
+  width: min(2020px, calc(100% - 14px));
+  min-height: 920px;
+  margin: 16px auto;
+  padding: 16px 24px 44px;
+  border: 1px solid #dbe8f7;
+  background: #eef6ff;
+  transform: scale(0.84);
+  transform-origin: top center;
+}
+.page-title {
+  margin: 0 0 12px 10px;
+  color: #1358cf;
+  font-size: 2.15rem;
+  line-height: 1.15;
+  font-weight: 880;
+  letter-spacing: 0;
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 392px;
+  gap: 24px;
+  align-items: start;
+}
+.main-card {
+  min-height: 720px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: rgba(251,253,255,0.92);
+  box-shadow: var(--shadow);
+  padding: 14px 54px 30px;
+  position: relative;
+}
+.card-title {
+  margin: 0;
+  font-size: 1.82rem;
+  line-height: 1.2;
+  font-weight: 850;
+  color: #05070b;
+}
+.desc {
+  margin: 18px auto 8px;
+  max-width: 1420px;
+  color: #5b6a7e;
+  font-size: 1.25rem;
+  line-height: 1.72;
+  text-indent: 2em;
+  font-weight: 560;
+}
+.download {
+  position: absolute;
+  top: 12px;
+  right: 48px;
+  min-width: 118px;
+  height: 46px;
+  border: 1px solid #e2e9f2;
+  border-radius: 8px;
+  background: #fbfdff;
+  color: #223047;
+  cursor: pointer;
+}
+.download:hover { border-color: #b8c8dc; }
+.chart-wrap {
+  position: relative;
+  margin-top: 14px;
+  padding: 26px 0 4px;
+}
+.chart {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  min-height: 470px;
+}
+.y-axis {
+  height: 274px;
+  padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+  color: #7f8793;
+  font-size: 1.05rem;
+  padding-right: 12px;
+}
+.plot-area {
+  min-width: 0;
+  overflow: visible;
+}
+.plot {
+  height: 274px;
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(28px, 1fr));
+  gap: 13px;
+  align-items: end;
+  padding: 0 0 0 0;
+  border-bottom: 2px solid #aeb9c9;
+  background:
+    repeating-linear-gradient(
+      to top,
+      transparent 0,
+      transparent 65px,
+      var(--grid) 66px,
+      transparent 67px
+    );
+}
+.bar-item {
+  height: 100%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  position: relative;
+}
+.bar-item::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--score) / 80 * 246px + 12px);
+  z-index: 20;
+  transform: translateX(-50%) translateY(8px);
+  min-width: 178px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #d8dee8;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 10px 28px rgba(17, 29, 50, 0.14);
+  color: #4c5666;
+  white-space: pre-line;
+  font-size: 0.93rem;
+  line-height: 1.35;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.bar-item:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.bar {
+  width: min(100%, 37px);
+  height: calc(var(--score) / 80 * 246px);
+  min-height: 8px;
+  border-radius: 5px 5px 0 0;
+  background: var(--color);
+  position: relative;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  animation: barRise 0.58s cubic-bezier(0.2, 0.72, 0.2, 1) forwards;
+  animation-delay: 0ms;
+}
+.score-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  color: #161b24;
+  font-size: 1.02rem;
+  font-weight: 650;
+  line-height: 1;
+  opacity: 0;
+  animation: labelFade 0.28s ease forwards;
+  animation-delay: 0.3s;
+}
+@keyframes barRise {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes labelFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.x-axis {
+  display: grid;
+  grid-template-columns: repeat(var(--count), minmax(28px, 1fr));
+  gap: 13px;
+  min-height: 156px;
+  padding-top: 0;
+}
+.label-cell {
+  min-width: 0;
+  position: relative;
+}
+.model-logo {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  background: var(--logo-bg, transparent);
+  border-radius: 5px;
+  color: var(--logo-fg, #fff);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.model-logo.img,
+.model-logo.file {
+  background: var(--logo-src) center / contain no-repeat;
+}
+.logo-openai { --logo-src: url("logo-openai.png"); }
+.logo-ai { --logo-src: url("logo-ai.png"); }
+.logo-google { --logo-src: url("logo-google.png"); }
+.logo-kimi { --logo-src: url("logo-kimi.png"); }
+.logo-mimo { --logo-src: url("logo-mimo.png"); }
+.logo-deepseek { --logo-src: url("logo-deepseek.png"); }
+.logo-z { --logo-src: url("logo-z.png"); }
+.logo-meta { --logo-src: url("logo-meta.png"); }
+.model-name {
+  position: absolute;
+  right: 50%;
+  top: 50px;
+  width: 150px;
+  transform: rotate(-60deg);
+  transform-origin: top right;
+  text-align: right;
+  white-space: nowrap;
+  color: #20252f;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.08;
+}
+.side {
+  display: grid;
+  gap: 48px;
+  padding-top: 2px;
+}
+.side-title {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  font-weight: 830;
+}
+.select-box {
+  position: relative;
+}
+.select-button {
+  width: 100%;
+  height: 68px;
+  border: 3px solid #111c31;
+  border-radius: 12px;
+  background: #f7fbff;
+  color: #172238;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  font-size: 1.12rem;
+  cursor: pointer;
+}
+.select-panel {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 50;
+  border: 1px solid #d6e1ef;
+  border-radius: 10px;
+  background: #f7fbff;
+  box-shadow: 0 18px 44px rgba(18, 37, 65, 0.16);
+  overflow: hidden;
+}
+.select-box.open .select-panel { display: grid; }
+.select-tools {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid #e4ebf4;
+}
+.select-tool {
+  min-width: 88px;
+  height: 52px;
+  border: 1px solid #dbe5f1;
+  border-radius: 6px;
+  background: #fbfdff;
+  color: #172238;
+  cursor: pointer;
+}
+.model-options {
+  max-height: 302px;
+  overflow: auto;
+  padding: 8px 12px;
+}
+.model-options::-webkit-scrollbar { width: 10px; }
+.model-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #74839a;
+}
+.model-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 5px 0;
+  border-radius: 6px;
+  font-size: 1.02rem;
+  color: #172238;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.model-option span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.model-option input {
+  width: 18px;
+  height: 18px;
+  accent-color: #1977f3;
+  flex: 0 0 auto;
+}
+.select-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  border-top: 1px solid #e4ebf4;
+  background: #f7fbff;
+}
+.select-action {
+  height: 56px;
+  border: 1px solid #dbe5f1;
+  border-radius: 6px;
+  background: #fbfdff;
+  color: #172238;
+  font-size: 1.02rem;
+  cursor: pointer;
+}
+.select-action.primary {
+  border-color: #1977f3;
+  color: #1977f3;
+}
+.info-card {
+  border: 1px solid #cfdceb;
+  border-radius: 10px;
+  background: rgba(251,253,255,0.9);
+  padding: 16px 22px;
+  color: #1a1f2a;
+  font-size: 1.25rem;
+  line-height: 1.62;
+  text-indent: 2em;
+}
+@media (max-width: 1280px) {
+  .layout { grid-template-columns: 1fr; }
+  .side { grid-template-columns: 1fr; gap: 18px; }
+  .main-card { padding-left: 28px; padding-right: 28px; }
+}
+@media (max-width: 760px) {
+  .page { width: min(100% - 12px, 2020px); min-height: auto; margin: 8px auto; padding: 14px 10px 24px; }
+  .page-title { font-size: 1.6rem; margin-left: 0; }
+  .main-card { padding: 14px; overflow-x: auto; }
+  .download { position: static; margin-top: 10px; }
+  .desc { font-size: 1rem; text-indent: 0; }
+  .chart { min-width: 1050px; }
+  .info-card { font-size: 1rem; }
+  .side { gap: 14px; }
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <h1 class="page-title">CryptoBench-SC 密码分析智能体综合指数</h1>
+  <section class="layout">
+    <article class="main-card" id="chartCard">
+      <h2 class="card-title">CryptoBench-SC 智能体综合得分总榜（2026年 3月最新测评）</h2>
+      <button class="download" id="downloadBtn" type="button">下载图片</button>
+      <p class="desc">CryptoBench-SC 是面向对称密码分析领域的智能体专用测评基准，聚焦差分 / 线性密码分析等专业密码任务，从 5 大题型、5 类认知动作、3 种工具配置维度，综合评估智能体在密码理解、攻击还原、方案规划、攻击实现、失败诊断修复的全链路实战能力。CryptoBench-SC 综合指数为所有任务的加权总得分，可直观对比各智能体在密码分析任务上的综合表现。</p>
+      <div class="chart-wrap">
+        <div class="chart">
+          <div class="y-axis">
+            <span>80</span>
+            <span>60</span>
+            <span>40</span>
+            <span>20</span>
+            <span>0</span>
+          </div>
+          <div class="plot-area">
+            <div class="plot" id="plot"></div>
+            <div class="x-axis" id="xAxis"></div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <aside class="side">
+      <div>
+        <h3 class="side-title" id="selectedCount">已选择 24/24 模型</h3>
+        <div class="select-box" id="selectBox">
+          <button class="select-button" id="selectButton" type="button">
+            <span>选择模型</span>
+            <span>▼</span>
+          </button>
+          <div class="select-panel" id="selectPanel"></div>
+        </div>
+      </div>
+      <div class="info-card">CryptoBench-SC 是专注对称密码分析的智能体测评基准，聚焦密码攻击实战落地能力，覆盖 5 类核心测评任务、5 项核心认知能力、3 个难度层级，包含差分分析、线性分析等经典密码学场景，通过自动验证器校验智能体输出的正确性与保真度，是密码分析领域智能体实战能力的客观量化标尺。</div>
+    </aside>
+  </section>
+</main>
+
+<script src="superclue-logo-data.js"></script>
+<script>
+const models = [
+  { name: "Claude-Opus-4.6(max)", score: 77.0, color: "#ce9a72", logoFile: "superclue-logo-claude-opus.png" },
+  { name: "Gemini-3.1-Pro-Preview(high)", score: 76.7, color: "#12b238", logoFile: "superclue-logo-gemini-pro-preview.png" },
+  { name: "GPT-5.4(xhigh)", score: 72.5, color: "#000000", logoFile: "superclue-logo-gpt-54.png" },
+  { name: "Doubao-Seed-2.0-Pro-260215(high)", score: 71.5, color: "#9dcced", logoFile: "superclue-logo-doubao-seed.png" },
+  { name: "DeepSeek-V4-Pro(max)", score: 71.0, color: "#4867f0", logoFile: "superclue-logo-deepseek-v4-pro.png" },
+  { name: "Gemini-3-Flash-Preview(high)", score: 68.8, color: "#12b238", logoFile: "superclue-logo-gemini-flash-preview.png" },
+  { name: "DeepSeek-V4-Flash(max)", score: 68.8, color: "#4867f0", logoFile: "superclue-logo-deepseek-v4-flash.png" },
+  { name: "Grok-4.20-Beta-0309(Reasoning)", score: 66.1, color: "#3c3971", logoFile: "superclue-logo-grok-beta.png" },
+  { name: "Kimi-K2.5-Thinking", score: 64.6, color: "#7d7d7d", logoFile: "superclue-logo-kimi-thinking.png" },
+  { name: "Qwen3.5-397B-A17B-Thinking", score: 64.5, color: "#7065ee", logoFile: "superclue-logo-qwen397-thinking.png" },
+  { name: "GLM-4.7-Thinking", score: 64.3, color: "#58585e", logoFile: "superclue-logo-glm-thinking.png" },
+  { name: "DeepSeek-V3.2-Thinking", score: 61.9, color: "#4967f0", logoFile: "superclue-logo-deepseek-v32-thinking.png" },
+  { name: "MiMo-V2-Pro", score: 60.7, color: "#ff7625", logoFile: "superclue-logo-mimo-v2-pro.png" },
+  { name: "Tencent Hunyuan-T1-Think", score: 59.2, color: "#f11c2c", logoFile: "superclue-logo-tencent-hunyuan.png" },
+  { name: "Qwen3.5-12B-A10B-Thinking", score: 58.5, color: "#6d61ee", logoFile: "superclue-logo-qwen12-thinking.png" },
+  { name: "LongCat-Flash-Thinking-2601", score: 57.5, color: "#ffc400", logoFile: "superclue-logo-longcat-flash.png" },
+  { name: "gpt-oss-120b(high)", score: 57.1, color: "#050505", logoFile: "superclue-logo-gpt-oss.png" },
+  { name: "Step-3.5-Flash", score: 56.2, color: "#1ccac4", logoFile: "superclue-logo-step-flash.png" },
+  { name: "MiniMax-M2.5", score: 56.0, color: "#df1683", logoFile: "superclue-logo-minimax-m25.png" },
+  { name: "MiniMax-M2.7", score: 55.7, color: "#dc167d", logoFile: "superclue-logo-minimax-m27.png" },
+  { name: "Spark X2", score: 52.8, color: "#df0505", logoFile: "superclue-logo-spark-x2.png" },
+  { name: "MiMo-V2-Flash", score: 50.0, color: "#ff7922", logoFile: "superclue-logo-mimo-v2-flash.png" },
+  { name: "Mistral Large 3", score: 41.1, color: "#ff7a00", logoFile: "superclue-logo-mistral-large.png" },
+  { name: "Llama-4-Maverick-17B-128E-Instruct", score: 36.7, color: "#7fc2ef", logoFile: "superclue-logo-llama-maverick.png" }
+];
+
+const selected = new Set(models.map(model => model.name));
+const draftSelected = new Set(selected);
+let visibleLimit = models.length;
+const plot = document.getElementById("plot");
+const xAxis = document.getElementById("xAxis");
+const selectPanel = document.getElementById("selectPanel");
+const selectedCount = document.getElementById("selectedCount");
+const selectBox = document.getElementById("selectBox");
+
+function render() {
+  const selectedRows = models.filter(model => selected.has(model.name));
+  const rows = selectedRows.slice(0, visibleLimit);
+  plot.style.setProperty("--count", rows.length);
+  xAxis.style.setProperty("--count", rows.length);
+  selectedCount.textContent = `已选择 ${selectedRows.length}/${models.length} 模型`;
+  plot.innerHTML = rows.map((model, index) => `
+    <div class="bar-item" style="--score:${model.score}" data-tip="${model.name}&#10;总分：${model.score.toFixed(2)}">
+      <div class="bar" style="--score:${model.score};--color:${model.color};--i:${index}">
+        <span class="score-label" style="--i:${index}">${model.score.toFixed(1)}</span>
+      </div>
+    </div>
+  `).join("");
+  xAxis.innerHTML = rows.map(model => `
+    <div class="label-cell">
+      ${renderLogo(model)}
+      <div class="model-name">${formatModelName(model.name)}</div>
+    </div>
+  `).join("");
+  renderOptions();
+}
+
+function updateVisibleLimit() {
+  const width = window.innerWidth;
+  if (width >= 1400) visibleLimit = models.length;
+  else if (width >= 1220) visibleLimit = 21;
+  else if (width >= 1040) visibleLimit = 18;
+  else if (width >= 880) visibleLimit = 15;
+  else if (width >= 720) visibleLimit = 12;
+  else visibleLimit = 9;
+  render();
+}
+
+function renderLogo(model) {
+  if (model.logoFile) return `<span class="model-logo file" style="--logo-src:url('${model.logoFile}')"></span>`;
+  if (model.logo) return `<span class="model-logo ${model.logo}"></span>`;
+  return `<span class="model-logo" style="--logo-bg:${model.logoBg};--logo-fg:${model.logoFg}">${model.logoText}</span>`;
+}
+
+function formatModelName(name) {
+  const breaks = {
+    "Gemini-3.1-Pro-Preview(high)": "Gemini-3.1-Pro<br>Preview(high)",
+    "Doubao-Seed-2.0-Pro-260215(high)": "Doubao-Seed-2.0-Pro<br>260215(high)",
+    "Gemini-3-Flash-Preview(high)": "Gemini-3-Flash<br>Preview(high)",
+    "Grok-4.20-Beta-0309(Reasoning)": "Grok-4.20-Beta-0309<br>(Reasoning)",
+    "Qwen3.5-397B-A17B-Thinking": "Qwen3.5-397B-A17B<br>Thinking",
+    "Tencent Hunyuan-T1-Think": "Tencent Hunyuan<br>T1-Think",
+    "Qwen3.5-12B-A10B-Thinking": "Qwen3.5-12B-A10B<br>Thinking",
+    "LongCat-Flash-Thinking-2601": "LongCat-Flash<br>Thinking-2601",
+    "Llama-4-Maverick-17B-128E-Instruct": "Llama-4-Maverick<br>17B-128E-Instruct"
+  };
+  return breaks[name] || name;
+}
+
+function renderOptions() {
+  selectPanel.innerHTML = `
+    <div class="select-tools">
+      <button class="select-tool" type="button" data-select-action="all">全选</button>
+      <button class="select-tool" type="button" data-select-action="clear">清空</button>
+      <button class="select-tool" type="button" data-select-action="reset">恢复默认</button>
+    </div>
+    <div class="model-options">
+      ${models.map(model => `
+        <label class="model-option">
+          <input type="checkbox" data-model="${model.name}" ${draftSelected.has(model.name) ? "checked" : ""}>
+          <span>${model.name}</span>
+        </label>
+      `).join("")}
+    </div>
+    <div class="select-actions">
+      <button class="select-action primary" type="button" data-select-action="apply">应用</button>
+      <button class="select-action" type="button" data-select-action="cancel">取消</button>
+    </div>
+  `;
+}
+
+document.getElementById("selectButton").addEventListener("click", () => {
+  draftSelected.clear();
+  selected.forEach(name => draftSelected.add(name));
+  renderOptions();
+  selectBox.classList.toggle("open");
+});
+
+document.addEventListener("click", event => {
+  if (!selectBox.contains(event.target)) selectBox.classList.remove("open");
+});
+
+selectPanel.addEventListener("change", event => {
+  event.stopPropagation();
+  const input = event.target.closest("[data-model]");
+  if (!input) return;
+  if (input.checked) draftSelected.add(input.dataset.model);
+  else draftSelected.delete(input.dataset.model);
+  selectBox.classList.add("open");
+});
+
+selectPanel.addEventListener("click", event => {
+  event.stopPropagation();
+  const button = event.target.closest("[data-select-action]");
+  if (!button) return;
+  const action = button.dataset.selectAction;
+  if (action === "all" || action === "reset") {
+    draftSelected.clear();
+    models.forEach(model => draftSelected.add(model.name));
+    renderOptions();
+    selectBox.classList.add("open");
+  }
+  if (action === "clear") {
+    draftSelected.clear();
+    renderOptions();
+    selectBox.classList.add("open");
+  }
+  if (action === "apply") {
+    selected.clear();
+    draftSelected.forEach(name => selected.add(name));
+    render();
+    selectBox.classList.remove("open");
+  }
+  if (action === "cancel") {
+    draftSelected.clear();
+    selected.forEach(name => draftSelected.add(name));
+    renderOptions();
+    selectBox.classList.remove("open");
+  }
+});
+
+document.getElementById("downloadBtn").addEventListener("click", async () => {
+  const rows = models.filter(model => selected.has(model.name));
+  const logoImages = await Promise.all(rows.map(model => loadImage(model.logoFile)));
+  const canvas = document.createElement("canvas");
+  canvas.width = 1500;
+  canvas.height = 780;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fbfdff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#05070b";
+  ctx.font = "bold 34px sans-serif";
+  ctx.fillText("CryptoBench-SC Agent Composite Score Leaderboard", 48, 58);
+  ctx.font = "18px sans-serif";
+  ctx.fillStyle = "#5b6a7e";
+  wrapText(ctx, "CryptoBench-SC is an agent benchmark for symmetric cryptanalysis. The composite index is the weighted total score across tasks and compares agent performance on cryptanalysis workflows.", 48, 96, 1370, 28);
+  const chartX = 120;
+  const chartY = 190;
+  const chartW = 1300;
+  const chartH = 300;
+  ctx.strokeStyle = "#dfe6ef";
+  ctx.fillStyle = "#7f8793";
+  ctx.font = "16px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const y = chartY + chartH - i * chartH / 4;
+    ctx.beginPath();
+    ctx.moveTo(chartX, y);
+    ctx.lineTo(chartX + chartW, y);
+    ctx.stroke();
+    ctx.fillText(String(i * 20), 70, y + 5);
+  }
+  const gap = 14;
+  const barW = Math.max(20, (chartW - gap * (rows.length - 1)) / rows.length);
+  rows.forEach((model, index) => {
+    const h = model.score / 80 * chartH;
+    const x = chartX + index * (barW + gap);
+    const y = chartY + chartH - h;
+    ctx.fillStyle = model.color;
+    roundRect(ctx, x, y, barW, h, 5);
+    ctx.fill();
+    ctx.fillStyle = "#111";
+    ctx.font = "bold 16px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(model.score.toFixed(1), x + barW / 2, y - 8);
+    const logo = logoImages[index];
+    if (logo) {
+      const logoSize = 24;
+      const lx = x + barW / 2 - logoSize / 2;
+      const ly = chartY + chartH + 14;
+      ctx.drawImage(logo, lx, ly, logoSize, logoSize);
+    }
+    ctx.save();
+    ctx.translate(x + barW / 2, chartY + chartH + 58);
+    ctx.rotate(-Math.PI / 3.1);
+    ctx.textAlign = "right";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(model.name, 0, 0);
+    ctx.restore();
+  });
+  canvas.toBlob(blob => {
+    if (!blob) {
+      alert("Image export failed. Please refresh the page and try again.");
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "superclue-index.png";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
+});
+
+function loadImage(src) {
+  return new Promise(resolve => {
+    if (!src) {
+      resolve(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = window.SUPERCLUE_LOGO_DATA?.[src] || src;
+  });
+}
+
+function roundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height);
+  ctx.lineTo(x, y + height);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  let line = "";
+  for (const char of text) {
+    const test = line + char;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      ctx.fillText(line, x, y);
+      line = char;
+      y += lineHeight;
+    } else {
+      line = test;
+    }
+  }
+  ctx.fillText(line, x, y);
+}
+
+window.addEventListener("resize", updateVisibleLimit);
+updateVisibleLimit();
+</script>
+</body>
+</html>
